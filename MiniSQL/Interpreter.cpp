@@ -423,6 +423,7 @@ void Interpret::Parse(char* command)
 				return;
 			}
 			getIndexInfo.column = tempint;
+			getIndexInfo.keytype = getTableInfo.attribute[tempint].type;
 			getIndexInfo.blockNum = 0;
 			getIndexInfo.columnLength = getTableInfo.attribute[tempint].length;
 			if (!getWord(temp, word)) return;

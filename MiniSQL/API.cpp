@@ -117,23 +117,17 @@ void Execute()
 			break;
 		}
 		Catalog.createIndex(indexinfor);
-		/*
-		IndexManager<int> indexint(indexinfor, tableinfor);
-		IndexManager<float> indexfloat(indexinfor, tableinfor);
-		IndexManager<string> indexstring(indexinfor, tableinfor);
-		switch (indexinfor.keytype) {
-		case INT:
-		creatIndex<int>(indexinfor, tableinfor);
-		break;
-		case FLOAT:
-		indexfloat.creatIndex();
-		break;
-		case STRING:
-		indexstring.creatIndex();
-		break;
-		}*/
+		if (indexinfor.keytype == INT) {
+			IndexManager<int> indexint(indexinfor, tableinfor);
+		}
+		else if (indexinfor.keytype == FLOAT){
+			IndexManager<float> indexfloat(indexinfor, tableinfor);
+		}
+		else {
+			IndexManager<string> indexfloat(indexinfor, tableinfor);
+		}
 		Catalog.update(indexinfor);
-		cout<<"The index "<< indexinfor.indexName << "has been created successfully"<<endl;
+		cout<<"The index "<< indexinfor.indexName << " has been created successfully"<<endl;
 		break;
 	case INDEXERROR:
 		cout<<"The index on primary key of table has been existed"<<endl;

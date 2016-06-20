@@ -75,14 +75,14 @@ IndexManager<KeyType>::IndexManager(const Index& _treeIndex, const Table& _treeT
 	char ch;
 	indexname = treeIndex.indexName + ".index";
     treeIndex.degree = (BLOCKSIZE - 30) / (this->treeIndex.columnLength + 2 * POINTERLENGTH);//recordNum×î´ódegree-1¸ö
-	fstream  fp(indexname.c_str(), ios::in | ios::out | ios::binary);
+	fstream  fp(indexname.c_str(), ios::out | ios::binary);
+	fp.get();
 	if (fp.eof())
 	{
 		fp.close();
 		creatIndex();
 		return;
 	}
-
 	
 	int bufferNum=buf.getEmptyBufferExceptFilename(indexname);
 	buf.readBlock(indexname, 0, bufferNum);

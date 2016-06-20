@@ -27,7 +27,7 @@ int main()
 {
 	int isQuit = 0, isCmdEnd, tot_len;
 	char input[1024], cmd[1024];
-	//freopen("input.txt", "r", stdin);
+	freopen("input.txt", "r", stdin);
 	cout << "Welcome to our miniSQL!" << endl;
 	while (!isQuit)
 	{

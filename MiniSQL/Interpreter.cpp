@@ -299,7 +299,7 @@ void Interpret::Parse(char* command)
 		column.push_back(tempcol);		//在这里开始push要返回的列
 		if (!getWord(temp, word)) return;
 		
-		while(word == "'")
+		while(word == ",")
 		{
 			if (!getWord(temp, word)) return;
 			tempcol.name=word;

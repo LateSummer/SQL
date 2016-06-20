@@ -48,6 +48,7 @@ int main()
 		}
 		ParseTree.Parse(cmd);
 		Execute();
+		ParseTree.makeInitilate();
 	}
 	return 0;
 }

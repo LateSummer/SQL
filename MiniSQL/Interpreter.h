@@ -100,6 +100,7 @@ public:
 		initValue();
 		initTable();
 		initIndex();
+		row.columns.clear();
 	}
 };
 

@@ -250,7 +250,6 @@ string Interpret::getRow(string &cmd)
 	if (!getWord(cmd, word)) return "";
 	if (word == "\'")
 	{
-		flag = getStr(cmd, word);
 		if (!getStr(cmd, word)) return "";
 		temprow = word;
 		if (!getWord(cmd, word)) return "";

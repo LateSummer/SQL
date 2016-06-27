@@ -344,7 +344,7 @@ void Interpret::Parse(char* command)
 			tempcon = getCon(temp);
 			if (tempcon.columnNum == -1) return;
 			condition.push_back(tempcon);
-			if (!flag)
+			if (!getWord(temp, word))
 			{
 				m_operation = SELECT_WHERE_CAULSE;
 				return;

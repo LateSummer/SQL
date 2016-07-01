@@ -547,11 +547,11 @@ void Interpret::Parse(char* command)
 			m_operation = DRPTABERR;
 			if (!getWord(temp, word)) return;
 			m_tabname = word;
-			if (!Catalog.ExistTable(m_tabname)){
-				m_operation=TABLEERROR;
+			if (!Catalog.ExistTable(m_tabname)) {
+				m_operation = TABLEERROR;
 				return;
 			}
-			getTableInfo=Catalog.getTableInformation(m_tabname);
+			getTableInfo = Catalog.getTableInformation(m_tabname);
 			if (!getWord(temp, word)) m_operation = DRPTAB;
 			return;
 		}
@@ -559,15 +559,24 @@ void Interpret::Parse(char* command)
 		{
 			m_operation = DRPINDERR;
 			if (!getWord(temp, word)) return;
-			m_indname=word;
-			if (!Catalog.ExistIndex(m_indname)){
-				m_operation=INDEXEROR;
+			m_indname = word;
+			if (!Catalog.ExistIndex(m_indname)) {
+				m_operation = INDEXEROR;
 				return;
 			}
 			if (!getWord(temp, word)) m_operation = DRPIND;
 		}
 		return;
 	}
+
+	if (word == "execfile")
+	{
+		m_operation = EXEFILERR;
+		if (!getWord(temp, word)) return;
+		m_filename = word;
+		if (!getWord(temp, word)) m_operation = EXEFILE;
+	}
+
 	return;
 }
 

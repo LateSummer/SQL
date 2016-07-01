@@ -4,6 +4,8 @@ extern CatalogManager Catalog;
 extern BufferManager buf;
 extern Interpret ParseTree;
 extern RecordManager record;
+extern int fp;
+extern fstream fin;
 
 void Execute()
 {
@@ -154,6 +156,14 @@ void Execute()
 		cout << "Have a good day! Press any key to close this window." << endl;
 		getchar();
 		exit(0);
+		break;
+	case EXEFILE:
+		fp = 1;
+		fin.open(ParseTree.m_filename.c_str(), ios::in);
+		if (fin.fail()) cout << "Open file fail!" << endl;
+		break;
+	case EXEFILERR:
+		cout << "Incorrect usage of \"execfile\" query! Please check your input!" << endl;
 		break;
 	case EMPTY:
 		cout << "Empty query! Please enter your command!" << endl;

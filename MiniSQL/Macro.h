@@ -30,7 +30,7 @@
 #define DELETEERR	16
 #define INSERTERR	17
 #define DRPTABERR	18
-#define DRPINDERR	19 
+#define DRPINDERR	19
 #define EXEFILERR	20
 #define NOPRIKEY    27
 #define VOIDPRI		21
@@ -53,10 +53,10 @@
 #define DELETE		5
 #define INSERT		6
 #define QUIT		7
-#define EXEFILE		8 
+#define EXEFILE		8
 
-#define COMLEN		400 
-#define INPUTLEN	200 
+#define COMLEN		400
+#define INPUTLEN	200
 #define WORDLEN		100
 #define VALLEN		300
 #define NAMELEN		100

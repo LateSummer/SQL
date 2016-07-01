@@ -118,11 +118,13 @@ public:
 			table.totalLength += table.attribute[i].length;
 		}
 		tables.push_back(table);
+		StoreTalbeCatalog(); 
 	}
 
 	void createIndex(Index index){
 		indexNum++;
 		indexes.push_back(index);
+		StoreIndexCatalog(); 
 	}
 
 	void dropTable(Table table){
@@ -140,12 +142,14 @@ public:
 				tableNum--;
 			}
 		}
+		StoreTalbeCatalog(); 
 		for(int i = indexNum - 1; i >= 0; i--){//表被删除了，建在这个表上的所有的index也要跟着删除
 			if(indexes[i].tableName == tablename){
 				indexes.erase (indexes.begin()+i);
 				indexNum--;
 			}
 		}
+		StoreIndexCatalog(); 
 	}
 	
 	void dropIndex(string indexName){
@@ -155,6 +159,7 @@ public:
 				indexNum--;
 			}
 		}
+		StoreIndexCatalog(); 
 	}
 	
 	void update(Table& tableinfor){
@@ -166,6 +171,7 @@ public:
 				tables[i].attribute = tableinfor.attribute;
 			}
 		}
+		StoreTalbeCatalog(); 
 	}
 	
 	void update(Index& index){
@@ -176,6 +182,7 @@ public:
 				indexes[i].blockNum = index.blockNum;
 			}
 		}
+		StoreIndexCatalog();
 	}
 	
 	bool ExistTable(string tablename){

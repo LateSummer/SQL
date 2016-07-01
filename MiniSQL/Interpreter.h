@@ -29,6 +29,7 @@ public:
 	string m_tabname;		//要操作的表格名
 	string m_indname;		//要操作的索引名
 	string m_colname;
+	string m_filename;		//要操作的文件名
 	vector<Attribute> column;
 	vector<Condition> condition;			//要比较的where字句的链表
 	Row row;		//要插入的值链表
@@ -44,6 +45,7 @@ public:
 		m_tabname = "";
 		m_indname = "";
 		m_colname = "";
+		m_filename = "";
 		PrimaryKeyPosition = -1;
 		UniquePostion = -1;
 	}

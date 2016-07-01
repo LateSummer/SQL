@@ -13,7 +13,6 @@
 #include "CatalogManager.h"
 #include "SQL.h"
 #include "Macro.h"
-using namespace std;
 
 void Execute();
 void ShowResult(Data data, Table tableinfor, vector<Attribute> column);

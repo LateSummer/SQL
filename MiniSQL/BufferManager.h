@@ -1,12 +1,12 @@
 #pragma once
 #ifndef _BUFFER_H
 #define _BUFFER_H
-#include "SQL.h"
-#include "Macro.h"
 #include <string> 
 #include <fstream>
 #include <vector>
 #include <iostream>
+#include "SQL.h"
+#include "Macro.h"
 
 /*文档：我们把bufferManger了里面的接口函数都改成private的，并把recordManger和
 indexManager定义为friend，这样就可以保证对只能通过bufferManager和indexManger

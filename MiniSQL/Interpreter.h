@@ -12,7 +12,6 @@
 #include "IndexManager.h"
 #include "Macro.h"
 #include "SQL.h"
-using namespace std;
 
 bool isChar(char c);
 bool isValid(char c);

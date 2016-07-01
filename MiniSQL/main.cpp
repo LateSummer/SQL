@@ -1,8 +1,8 @@
+#include"API.h"
 #include"BufferManager.h"
 #include"IndexManager.h"
 #include"recordManager.h"
 #include"Interpreter.h"
-#include"API.h"
 #include"Macro.h"
 #include"SQL.h"
 using namespace std;

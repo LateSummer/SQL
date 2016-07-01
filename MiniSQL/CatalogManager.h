@@ -7,7 +7,6 @@
 #include <iostream>
 #include "Macro.h"
 #include "SQL.h"
-using namespace std;
 
 /*实现的功能： 
  *在程序运行之前把catalog信息读入内存 

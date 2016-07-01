@@ -92,7 +92,7 @@ void Execute()
 		tableinfor = ParseTree.getTableInfo;
 		if (ParseTree.condition.size() == 1) {
 			for (int i = 0; i < ParseTree.getTableInfo.attribute.size(); i++) {
-				/*ÐÞ¸Ä*/if ((ParseTree.getTableInfo.attribute[i].isPrimeryKey == true || ParseTree.getTableInfo.attribute[i].isUnique == true) && ParseTree.m_colname == ParseTree.getTableInfo.attribute[i].name) {
+				if ((ParseTree.getTableInfo.attribute[i].isPrimeryKey == true || ParseTree.getTableInfo.attribute[i].isUnique == true) && ParseTree.m_colname == ParseTree.getTableInfo.attribute[i].name) {
 					tempPrimaryPosition = i;
 					indexinfor = Catalog.getIndexInformation(tableinfor.tableName, i);
 					break;
@@ -103,20 +103,20 @@ void Execute()
 				stringstream ss;
 				ss << tempKeyValue;
 				if (indexinfor.keytype == INT) {
-					IndexManager<int> indexint;
+					IndexManager<int> indexint(indexinfor,tableinfor);
 					int KeyValue;
 					ss >> KeyValue;
-					//indexint.selectEqual(KeyValue);
+					data = indexint.selectEqual(KeyValue);
 				}
 				else if (indexinfor.keytype == FLOAT) {
-					IndexManager<float> indexfloat;
+					IndexManager<float> indexfloat(indexinfor, tableinfor);
 					float KeyValue;
 					ss >> KeyValue;
-					//indexfloat.selectEqual(KeyValue);
+					data = indexfloat.selectEqual(KeyValue);
 				}
 				else {
-					IndexManager<string> indexstring;
-					//indexstring.selectEqual(tempKeyValue);
+					IndexManager<string> indexstring(indexinfor, tableinfor);
+					data = indexstring.selectEqual(tempKeyValue);
 				}
 			}
 			else {

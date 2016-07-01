@@ -17,7 +17,7 @@ void OutSetPointer(int bufferNum, int position, int pointer)
 	string str = tmpf;
 	while (str.length() < 5)
 		str = '0' + str;
-	strncpy(buf.bufferBlock[bufferNum].value + position, str.c_str(), 5);
+	memcpy(buf.bufferBlock[bufferNum].value + position, str.c_str(), 5);
 	return;
 }
 
@@ -65,7 +65,6 @@ public:
 	void adjustafterdelete(int bufferNum);
 	void deleteNode(int bufferNum);
 };*/
-
 
 template <typename KeyType>
 IndexManager<KeyType>::IndexManager(const Index& _treeIndex, const Table& _treeTable)//需要维护：blockNum;degree;leafhead;
@@ -179,12 +178,14 @@ void IndexManager<KeyType>::InitializeRoot()
 	this->isLeaf = 1;
 	Leaf<KeyType> NEW(bufferNum, this->treeIndex);
 	this->rootL=NEW;
+	this->rootL.father = -1;
+	this->rootL.lastleaf = -1;
+	this->rootL.nextleaf = -1;
 	this->rootL.columnLength = treeIndex.columnLength;
 	this->rootL.isRoot = 1;
 	this->rootL.degree = treeIndex.degree;
 	this->rootL.writeBack();
 	buf.bufferBlock[bufferNum].Lock = 1;
-	buf.flashBack(bufferNum);
 	return;
 }
 //把一个节点从buffer读到节点中只需要node(bufferNum)即可，写回去只要node.writeBack()即可，将一个buffer写到文件只要处理Lock和buf.flashBack(bufferNum)即可
@@ -236,7 +237,6 @@ bool IndexManager<KeyType>::insertLeaf(KeyType mykey, int blockNum, int blockOff
 		cout << "Error:insertLeaf(const KeyType &mykey,const offset val) is a function for leaf nodes" << endl;
 		return 0;
 	}
-
 	Leaf<KeyType> myleaf(bufferNum, this->treeIndex);
 	if (myleaf.recordNum == 0)
 	{
@@ -245,8 +245,9 @@ bool IndexManager<KeyType>::insertLeaf(KeyType mykey, int blockNum, int blockOff
 		myleaf.POS.clear();
 		myleaf.POS.push_back(recordPosition(blockNum, blockOffset));
 		myleaf.recordNum++;
-		buf.writeBlock(bufferNum);
-		return 1;
+		if (myleaf.isRoot)
+			this->rootL = myleaf;
+		myleaf.writeBack();
 	}
 	else
 	{
@@ -257,6 +258,8 @@ bool IndexManager<KeyType>::insertLeaf(KeyType mykey, int blockNum, int blockOff
 		myleaf.key.insert(kit, mykey);
 		myleaf.POS.insert(pit, recordPosition(blockNum, blockOffset));
 		myleaf.recordNum++;
+		if (myleaf.isRoot)
+			this->rootL = myleaf;
 		myleaf.writeBack();
 		
 		if (offset == 0)
@@ -282,9 +285,10 @@ bool IndexManager<KeyType>::insertLeaf(KeyType mykey, int blockNum, int blockOff
 		buf.writeBlock(bufferNum);
 		if (getRecordNum(myleaf.bufferNum) >= (this->treeIndex.degree - 1))
 			this->adjustafterinsert(myleaf.bufferNum);
-		return 1;
+		
 	}
-	
+
+	return 1;
 }
 
 template <class KeyType>
@@ -321,7 +325,9 @@ bool IndexManager<KeyType>::insertBranch(KeyType mykey, int child, int bufferNum
 		mybranch.key.push_back(mykey);
 		mybranch.child.push_back(child);
 		mybranch.recordNum++;
-		buf.writeBlock(bufferNum);
+		if (mybranch.isRoot)
+			this->rootB = mybranch;
+		mybranch.writeBack();
 		return 1;
 	}
 	else
@@ -333,6 +339,8 @@ bool IndexManager<KeyType>::insertBranch(KeyType mykey, int child, int bufferNum
 		mybranch.key.insert(kit, mykey);
 		mybranch.child.insert(cit, child);
 		mybranch.recordNum++;
+		if (mybranch.isRoot)
+			this->rootB = mybranch;
 		mybranch.writeBack();
 
 		if (getRecordNum(mybranch.bufferNum) >= (this->treeIndex.degree - 1))
@@ -565,7 +573,10 @@ void IndexManager<KeyType>::creatIndex()
 			stringrow = buf.bufferBlock[bufferNum].getvalue(position, position + length);
 			if (stringrow.c_str()[0] == EMPTY) continue;//inticate that this row of record have been deleted
 			stringrow.erase(stringrow.begin());	//把第一位去掉//现在stringrow代表一条记录
-			mykey = getValue<KeyType>(bufferNum, position + getKeyPosition(), this->treeIndex.columnLength);
+			if (this->treeIndex.column==0)
+				mykey = getTableValue<KeyType>(bufferNum, 1+position + getKeyPosition(), this->treeIndex.columnLength);
+			else
+				mykey = getTableValue<KeyType>(bufferNum, position + getKeyPosition(), this->treeIndex.columnLength);			
 			insertIndex(mykey, blockOffset, offset);
 		}
 	}
@@ -652,7 +663,7 @@ bool IndexManager<KeyType>::deleteBranch(KeyType mykey, int bufferNum, int offse
 	}
 
 	Branch<KeyType> mybranch(bufferNum, this->treeIndex);
-	if (mybranch.key.size()<(offset + 1) || mybranch.key[offset] != mykey)
+	if (mybranch.key.size() < (offset + 1) || mybranch.key[offset] != mykey)
 	{
 		cout << "Error:In remove(size_t index), can not find the key!" << endl;
 		return 0;
@@ -699,7 +710,7 @@ void IndexManager<KeyType>::deleteNode(int bufferNum)
 
 	if (buf.bufferBlock[bufferNum].value[1] == 'L')//这是个叶子
 	{
-		
+
 		if (buf.bufferBlock[lastblock].value[1] == 'L')
 		{
 			if (buf.bufferBlock[lastblock].value[0] == 'R')
@@ -735,23 +746,23 @@ void IndexManager<KeyType>::deleteNode(int bufferNum)
 			index = offset;
 			parent.child[index] = buf.bufferBlock[bufferNum].blockOffset;
 			parent.writeBack();
-			vector<int>::iterator it= lastbranch.child.begin();
+			vector<int>::iterator it = lastbranch.child.begin();
 			for (; it != lastbranch.child.end(); it++)
 			{
 				int cbufferNum = buf.getBlockNum(this->indexname, *it);
 				OutSetPointer(cbufferNum, 6, buf.bufferBlock[bufferNum].blockOffset);
 			}
-			
+
 			buf.bufferBlock[lastblock].blockOffset = buf.bufferBlock[bufferNum].blockOffset;
 			lastbranch.writeBack();
 			buf.bufferBlock[bufferNum].initialize();
 			this->treeIndex.blockNum--;
 		}
-			
+
 	}
 	else//it's a branch
 	{
-		
+
 		if (buf.bufferBlock[lastblock].value[1] == 'L')
 		{
 			if (buf.bufferBlock[lastblock].value[0] == 'R')
@@ -813,7 +824,7 @@ bool IndexManager<KeyType>::deleteLeaf(KeyType mykey, int bufferNum, int offset)
 	}
 
 	Leaf<KeyType> myleaf(bufferNum, this->treeIndex);
-	if (myleaf.key.size()<(offset+1) || myleaf.key[offset]!=mykey)
+	if (myleaf.key.size() < (offset + 1) || myleaf.key[offset] != mykey)
 	{
 		cout << "Error:In remove(size_t index), can not find the key!" << endl;
 		return 0;
@@ -854,7 +865,7 @@ bool IndexManager<KeyType>::deleteLeaf(KeyType mykey, int bufferNum, int offset)
 template <class KeyType>
 void IndexManager<KeyType>::adjustafterdelete(int bufferNum)//需要维护：blockNum;leafhead;
 {
-	int min_leaf = this->treeIndex.degree/2;
+	int min_leaf = this->treeIndex.degree / 2;
 	int min_branch = (this->treeIndex.degree - 1) / 2;
 	if ((buf.bufferBlock[bufferNum].value[1] == 'L' && getRecordNum(bufferNum) >= min_leaf) || (buf.bufferBlock[bufferNum].value[1] != 'L' && getRecordNum(bufferNum) >= min_branch))
 		return 1;
@@ -879,13 +890,13 @@ void IndexManager<KeyType>::adjustafterdelete(int bufferNum)//需要维护：blockNum
 			int fbufferNum = buf.getBlockNum(this->indexname, myleaf.father);
 			Branch<KeyType> parent(fbufferNum, this->treeIndex);
 			parent.search(myleaf.key[0], offset);
-			if (offset != 0 && (offset == parent.recordNum-1))//choose the left brother to merge or replace
+			if (offset != 0 && (offset == parent.recordNum - 1))//choose the left brother to merge or replace
 			{
 				int sbufferNum = buf.getBlockNum(this->indexname, parent.child[offset]);
 				Leaf<KeyType> brother(sbufferNum, this->treeIndex);
 				if (brother.recordNum > min_leaf)// choose the most right key of brother to add to the left hand of the pnode
 				{
-					myleaf.key.insert(myleaf.key.begin(), brother.key[brother.recordNum-1]);
+					myleaf.key.insert(myleaf.key.begin(), brother.key[brother.recordNum - 1]);
 
 					myleaf.POS.insert(myleaf.POS.begin(), brother.POS[brother.recordNum - 1]);
 					myleaf.recordNum++;
@@ -913,10 +924,10 @@ void IndexManager<KeyType>::adjustafterdelete(int bufferNum)//需要维护：blockNum
 
 					}
 					brother.nextleaf = myleaf.nextleaf;
-					
+
 					brother.writeBack();
 					myleaf.writeBack();
-					
+
 					this->deleteNode(myleaf.bufferNum);
 					this->adjustafterdelete(parent.bufferNum);
 					return 1;
@@ -937,12 +948,12 @@ void IndexManager<KeyType>::adjustafterdelete(int bufferNum)//需要维护：blockNum
 				}
 				sbufferNum = buf.getBlockNum(this->indexname, parent.child[index]);
 				Leaf<KeyType> brother(sbufferNum, this->treeIndex);
-				
+
 				if (brother.recordNum > min_leaf)//// choose the most left key of right brother to add to the right hand of the node
 				{
-					KeyType mykey=brother.key[0];
-					recordPosition myPOS=brother.POS[0];
-					int RECORDNUM=myleaf.recordNum;
+					KeyType mykey = brother.key[0];
+					recordPosition myPOS = brother.POS[0];
+					int RECORDNUM = myleaf.recordNum;
 					this->deleteLeaf(mykey, sbufferNum, 0);
 					this->insertLeaf(mykey, myPOS.blockNum, myPOS.blockPosition, sbufferNum, RECORDNUM);
 
@@ -991,7 +1002,7 @@ void IndexManager<KeyType>::adjustafterdelete(int bufferNum)//需要维护：blockNum
 					Branch<KeyType> childbranch(cbufferNum, this->treeIndex);
 					childbranch.father = -1;
 					childbranch.isRoot = 1;
-					this->rootB = childbranch; 
+					this->rootB = childbranch;
 					this->isLeaf = 1;
 
 					childbranch.writeBack();
@@ -1036,7 +1047,7 @@ void IndexManager<KeyType>::adjustafterdelete(int bufferNum)//需要维护：blockNum
 				par->search(pnode->key[0], index);
 			}
 
-			int offset=0;
+			int offset = 0;
 			int fbufferNum = buf.getBlockNum(this->indexname, mybranch.father);
 			Branch<KeyType> parent(fbufferNum, this->treeIndex);
 			if (mybranch.recordNum == 0)
@@ -1051,14 +1062,14 @@ void IndexManager<KeyType>::adjustafterdelete(int bufferNum)//需要维护：blockNum
 			{
 				parent.search(mybranch.key[0], offset);
 			}
-			
+
 			if (offset != 0 && (offset == parent.recordNum))//choose the left brother to merge or replace
 			{
-				int sbufferNum = buf.getBlockNum(this->indexname, parent.child[offset-1]);
+				int sbufferNum = buf.getBlockNum(this->indexname, parent.child[offset - 1]);
 				Branch<KeyType> brother(sbufferNum, this->treeIndex);
 				if (brother.recordNum > min_branch)// choose the most right key of brother to add to the left hand of the pnode
 				{
-					mybranch.key.insert(mybranch.key.begin(), parent.key[offset-1]);
+					mybranch.key.insert(mybranch.key.begin(), parent.key[offset - 1]);
 					int childblock = brother.child[brother.recordNum];
 					mybranch.child.insert(mybranch.child.begin(), brother.child[brother.recordNum]);
 					mybranch.recordNum++;
@@ -1076,7 +1087,7 @@ void IndexManager<KeyType>::adjustafterdelete(int bufferNum)//需要维护：blockNum
 				else// merge the node with its left brother
 				{
 					parent.writeBack();
-					KeyType parentKey=parent.key[parent.recordNum-1];
+					KeyType parentKey = parent.key[parent.recordNum - 1];
 					this->deleteBranch(parentKey, parent.bufferNum, parent.recordNum - 1);
 
 					brother.key.push_back(parentKey);
@@ -1093,7 +1104,7 @@ void IndexManager<KeyType>::adjustafterdelete(int bufferNum)//需要维护：blockNum
 						childblock = mybranch.child[0];
 						mybranch.key.erase(mybranch.key.begin());
 						mybranch.child.erase(mybranch.child.begin());
-						
+
 						cbufferNum = buf.getBlockNum(this->indexname, childblock);
 						OutSetPointer(cbufferNum, 6, buf.bufferBlock[brother.bufferNum].blockOffset);
 						brother.recordNum++;
@@ -1171,8 +1182,6 @@ void IndexManager<KeyType>::adjustafterdelete(int bufferNum)//需要维护：blockNum
 			}
 		}
 	}
-
-
 }
 
 
@@ -1181,7 +1190,7 @@ recordPosition IndexManager<KeyType>::selectEqual(KeyType mykey)
 {
 	int offset;
 	int bufferNum = 0;
-	recordPosition res(-1,0);
+	recordPosition res(-1, 0);
 	if (this->findToLeaf<KeyType>(mykey, offset, bufferNum))
 	{
 		Leaf<KeyType> myleaf(bufferNum, this->treeIndex);

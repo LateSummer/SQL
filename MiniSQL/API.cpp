@@ -21,7 +21,7 @@ void Execute()
 		ParseTree.getTableInfo.attriNum = ParseTree.getTableInfo.attribute.size();
 		Catalog.createTable(ParseTree.getTableInfo);
 		record.createTable(ParseTree.getTableInfo);
-		cout << "Table "<<ParseTree.getTableInfo.tableName<<" has been created successfully"<< endl;
+		cout << "Table " << ParseTree.getTableInfo.tableName << " has been created successfully" << endl;
 		break;
 	case TABLEEXISTED:
 		cout << "The table has been created, please check the database" << endl;
@@ -33,35 +33,35 @@ void Execute()
 			if (indexinfor.indexName != "") dropIndex(indexinfor);
 		}
 		Catalog.dropTable(ParseTree.getTableInfo);
-		cout<<"Table "<<ParseTree.getTableInfo.tableName<<" has been dropped successfully"<<endl;
+		cout << "Table " << ParseTree.getTableInfo.tableName << " has been dropped successfully" << endl;
 		break;
 	case INSERT:
 		tableinfor = ParseTree.getTableInfo;
 		if (ParseTree.PrimaryKeyPosition == -1 && ParseTree.UniquePostion == -1) {
 			record.insertValue(tableinfor, ParseTree.row);
 			Catalog.update(tableinfor);
-			cout<<"One record has been inserted successfully"<<endl;
+			cout << "One record has been inserted successfully" << endl;
 			break;
 		}
 		if (ParseTree.PrimaryKeyPosition != -1)
 		{
 			data = record.select(tableinfor, ParseTree.condition);
-			if (data.rows.size()>0) {
-				cout<<"Primary Key Redundancy occurs, thus insertion failed"<<endl;
+			if (data.rows.size() > 0) {
+				cout << "Primary Key Redundancy occurs, thus insertion failed" << endl;
 				break;
 			}
 		}
 		if (ParseTree.UniquePostion != -1) {
 
 			data = record.select(tableinfor, ParseTree.UniqueCondition);
-			if (data.rows.size()>0) {
-				cout<<"Unique Value Redundancy occurs, thus insertion failed"<<endl;
+			if (data.rows.size() > 0) {
+				cout << "Unique Value Redundancy occurs, thus insertion failed" << endl;
 				break;
 			}
 		}
 		record.insertValue(tableinfor, ParseTree.row);
 		Catalog.update(tableinfor);
-		cout<<"One record has been inserted successfully"<<endl;
+		cout << "One record has been inserted successfully" << endl;
 		break;
 	case INSERTERR:
 		cout << "Incorrect usage of \"insert\" query! Please check your input!" << endl;
@@ -87,12 +87,24 @@ void Execute()
 			}
 			if (tempPrimaryPosition == ParseTree.condition[0].columnNum && ParseTree.condition[0].op == Eq && indexinfor.tableName != "") {
 				tempKeyValue = ParseTree.condition[0].value;
-				/*
-				switch (indexinfor.keytype) {
-				case INT:data = indexint.selectEqual(tempKeyValue);
-				case FLOAT:data = indexfloat.selectEqual(tempKeyValue);
-				case STRING:data = indexstring.selectEqual(tempKeyValue);
-				}*/
+				stringstream ss;
+				ss << tempKeyValue;
+				if (indexinfor.keytype == INT) {
+					IndexManager<int> indexint;
+					int KeyValue;
+					ss >> KeyValue;
+					indexint.selectEqual(KeyValue);
+				}
+				else if (indexinfor.keytype == FLOAT) {
+					IndexManager<float> indexfloat;
+					float KeyValue;
+					ss >> KeyValue;
+					indexfloat.selectEqual(KeyValue);
+				}
+				else {
+					IndexManager<string> indexstring;
+					indexstring.selectEqual(tempKeyValue);
+				}
 			}
 			else {
 				data = record.select(tableinfor, ParseTree.condition);
@@ -109,45 +121,48 @@ void Execute()
 		break;
 	case DELETE:
 		rowCount = record.deleteValue(ParseTree.getTableInfo, ParseTree.condition);
-		cout<< rowCount <<"  rows have been deleted."<<endl;
+		cout << rowCount << "  rows have been deleted." << endl;
 		break;
 	case CREIND:
 		tableinfor = ParseTree.getTableInfo;
 		indexinfor = ParseTree.getIndexInfo;
 		if (!tableinfor.attribute[indexinfor.column].isPrimeryKey && !tableinfor.attribute[indexinfor.column].isUnique) {//不是primary key，不可以建index
-			cout << "Column " << tableinfor.attribute[indexinfor.column].name <<"  is not unique."<< endl;
+			cout << "Column " << tableinfor.attribute[indexinfor.column].name << "  is not unique." << endl;
 			break;
 		}
 		Catalog.createIndex(indexinfor);
 		if (indexinfor.keytype == INT) {
 			IndexManager<int> indexint(indexinfor, tableinfor);
 		}
-		else if (indexinfor.keytype == FLOAT){
+		else if (indexinfor.keytype == FLOAT) {
+			IndexManager<float> indexfloat(indexinfor, tableinfor);
+		}
+		else {
+			IndexManager<string> indexstring(indexinfor, tableinfor);
+		}
+		Catalog.update(indexinfor);
+		cout << "The index " << indexinfor.indexName << " has been created successfully" << endl;
+		break;
+	case INDEXERROR:
+		cout << "The index on primary key of table has been existed" << endl;
+		break;
+	case DRPIND:
+		indexinfor = Catalog.getIndexInformation(ParseTree.m_indname);
+		if (indexinfor.indexName == "") {
+			cout << "Index" << ParseTree.m_indname << "does not exist!" << endl;
+		}
+		if (indexinfor.keytype == INT) {
+			IndexManager<int> indexint(indexinfor, tableinfor);
+		}
+		else if (indexinfor.keytype == FLOAT) {
 			IndexManager<float> indexfloat(indexinfor, tableinfor);
 		}
 		else {
 			IndexManager<string> indexfloat(indexinfor, tableinfor);
 		}
-		Catalog.update(indexinfor);
-		cout<<"The index "<< indexinfor.indexName << " has been created successfully"<<endl;
-		break;
-	case INDEXERROR:
-		cout<<"The index on primary key of table has been existed"<<endl;
-		break;
-	case DRPIND:
-		//indexinfor = Catalog.getIndexInformation(ParseTree.m_indname);
-		if (indexinfor.indexName == "") {
-			cout << "Index" << ParseTree.m_indname << "does not exist!" << endl;
-		}
-		/*
-		switch (indexinfor.keytype) {
-		case INT: dropIndex<int>(indexinfor); break;
-		case FLOAT: dropIndex<float>(indexinfor); break;
-		case STRING: dropIndex<string>(indexinfor); break;
-		}
-		*/
+		dropIndex(indexinfor);
 		Catalog.dropIndex(ParseTree.m_indname);
-		cout<<"The index has been dropped successfully"<<endl;
+		cout << "The index has been dropped successfully" << endl;
 		break;
 	case CREINDERR:
 		cout << "Incorrect usage of \"create index\" query! Please check your input!" << endl;
@@ -199,43 +214,43 @@ void Execute()
 		cout << "No primary key is defined! Please check your input!" << endl;
 		break;
 	case TABLEERROR:
-		cout<<"Table is not existed,please check the database"<<endl;
+		cout << "Table is not existed,please check the database" << endl;
 		break;
 	case INDEXEROR:
-		cout<<"Index is not existed,please check the database"<<endl;
+		cout << "Index is not existed,please check the database" << endl;
 		break;
 	case COLUMNERROR:
-		cout<<"One column is not existed"<<endl;
+		cout << "One column is not existed" << endl;
 		break;
 	case INSERTNUMBERERROR:
-		cout<<"The column number is not according to the columns in our database"<<endl;
+		cout << "The column number is not according to the columns in our database" << endl;
 		break;
 	}
 }
 
-void ShowResult(Data data, Table tableinfor, vector<Attribute> column){
-	if(column[0].name == "*"){
-		cout << endl <<"+";
-		for(int i = 0; i < tableinfor.attriNum; i++){
-			for(int j = 0; j < tableinfor.attribute[i].length + 1; j++){
+void ShowResult(Data data, Table tableinfor, vector<Attribute> column) {
+	if (column[0].name == "*") {
+		cout << endl << "+";
+		for (int i = 0; i < tableinfor.attriNum; i++) {
+			for (int j = 0; j < tableinfor.attribute[i].length + 1; j++) {
 				cout << "-";
 			}
 			cout << "+";
 		}
 		cout << endl;
 		cout << "| ";
-		for(int i = 0; i < tableinfor.attriNum; i++){
+		for (int i = 0; i < tableinfor.attriNum; i++) {
 			cout << tableinfor.attribute[i].name;
 			int lengthLeft = tableinfor.attribute[i].length - tableinfor.attribute[i].name.length();
-			for(int j = 0; j < lengthLeft; j++){
+			for (int j = 0; j < lengthLeft; j++) {
 				cout << ' ';
 			}
 			cout << "| ";
 		}
 		cout << endl;
 		cout << "+";
-		for(int i = 0; i < tableinfor.attriNum; i++){
-			for(int j = 0; j < tableinfor.attribute[i].length + 1; j++){
+		for (int i = 0; i < tableinfor.attriNum; i++) {
+			for (int j = 0; j < tableinfor.attribute[i].length + 1; j++) {
 				cout << "-";
 			}
 			cout << "+";
@@ -243,66 +258,66 @@ void ShowResult(Data data, Table tableinfor, vector<Attribute> column){
 		cout << endl;
 
 		//内容
-		for(int i = 0; i < data.rows.size(); i++){
+		for (int i = 0; i < data.rows.size(); i++) {
 			cout << "| ";
-			for(int j = 0; j < tableinfor.attriNum; j++){
+			for (int j = 0; j < tableinfor.attriNum; j++) {
 				int lengthLeft = tableinfor.attribute[j].length;
-				for(int k =0; k < data.rows[i].columns[j].length(); k++){
-					if(data.rows[i].columns[j].c_str()[k] == EMPTY) break;
-					else{
+				for (int k = 0; k < data.rows[i].columns[j].length(); k++) {
+					if (data.rows[i].columns[j].c_str()[k] == EMPTY) break;
+					else {
 						cout << data.rows[i].columns[j].c_str()[k];
 						lengthLeft--;
 					}
 				}
-				for(int k = 0; k < lengthLeft; k++) cout << " ";
+				for (int k = 0; k < lengthLeft; k++) cout << " ";
 				cout << "| ";
 			}
 			cout << endl;
 		}
 
 		cout << "+";
-		for(int i = 0; i < tableinfor.attriNum; i++){
-			for(int j = 0; j < tableinfor.attribute[i].length + 1; j++){
+		for (int i = 0; i < tableinfor.attriNum; i++) {
+			for (int j = 0; j < tableinfor.attribute[i].length + 1; j++) {
 				cout << "-";
 			}
 			cout << "+";
 		}
 		cout << endl;
 	}
-	else{
-		cout << endl <<"+";
-		for(int i = 0; i < column.size(); i++){
+	else {
+		cout << endl << "+";
+		for (int i = 0; i < column.size(); i++) {
 			int col;
-			for(col = 0; col < tableinfor.attribute.size(); col++){
-				if(tableinfor.attribute[col].name == column[i].name) break;
+			for (col = 0; col < tableinfor.attribute.size(); col++) {
+				if (tableinfor.attribute[col].name == column[i].name) break;
 			}
-			for(int j = 0; j < tableinfor.attribute[col].length + 1; j++){
+			for (int j = 0; j < tableinfor.attribute[col].length + 1; j++) {
 				cout << "-";
 			}
 			cout << "+";
 		}
 		cout << endl;
 		cout << "| ";
-		for(int i = 0; i < column.size(); i++){
+		for (int i = 0; i < column.size(); i++) {
 			int col;
-			for(col = 0; col < tableinfor.attribute.size(); col++){
-				if(tableinfor.attribute[col].name == column[i].name) break;
+			for (col = 0; col < tableinfor.attribute.size(); col++) {
+				if (tableinfor.attribute[col].name == column[i].name) break;
 			}
 			cout << tableinfor.attribute[col].name;
 			int lengthLeft = tableinfor.attribute[col].length - tableinfor.attribute[col].name.length();
-			for(int j = 0; j < lengthLeft; j++){
+			for (int j = 0; j < lengthLeft; j++) {
 				cout << ' ';
 			}
 			cout << "| ";
 		}
 		cout << endl;
 		cout << "+";
-		for(int i = 0; i < column.size(); i++){
+		for (int i = 0; i < column.size(); i++) {
 			int col;
-			for(col = 0; col < tableinfor.attribute.size(); col++){
-				if(tableinfor.attribute[col].name == column[i].name) break;
+			for (col = 0; col < tableinfor.attribute.size(); col++) {
+				if (tableinfor.attribute[col].name == column[i].name) break;
 			}
-			for(int j = 0; j < tableinfor.attribute[col].length + 1; j++){
+			for (int j = 0; j < tableinfor.attribute[col].length + 1; j++) {
 				cout << "-";
 			}
 			cout << "+";
@@ -310,39 +325,39 @@ void ShowResult(Data data, Table tableinfor, vector<Attribute> column){
 		cout << endl;
 
 		//内容
-		for(int i = 0; i < data.rows.size(); i++){
+		for (int i = 0; i < data.rows.size(); i++) {
 			cout << "| ";
-			for(int j = 0; j < column.size(); j++){
+			for (int j = 0; j < column.size(); j++) {
 				int col;
-				for(col = 0; col < tableinfor.attribute.size(); col++){
-					if(tableinfor.attribute[col].name == column[j].name) break;
+				for (col = 0; col < tableinfor.attribute.size(); col++) {
+					if (tableinfor.attribute[col].name == column[j].name) break;
 				}
 				int lengthLeft = tableinfor.attribute[col].length;
-				for(int k =0; k < data.rows[i].columns[col].length(); k++){
-					if(data.rows[i].columns[col].c_str()[k] == EMPTY) break;
-					else{
+				for (int k = 0; k < data.rows[i].columns[col].length(); k++) {
+					if (data.rows[i].columns[col].c_str()[k] == EMPTY) break;
+					else {
 						cout << data.rows[i].columns[col].c_str()[k];
 						lengthLeft--;
 					}
 				}
-				for(int k = 0; k < lengthLeft; k++) cout << " ";
+				for (int k = 0; k < lengthLeft; k++) cout << " ";
 				cout << "| ";
 			}
 			cout << endl;
 		}
 
 		cout << "+";
-		for(int i = 0; i < column.size(); i++){
+		for (int i = 0; i < column.size(); i++) {
 			int col;
-			for(col = 0; col < tableinfor.attribute.size(); col++){
-				if(tableinfor.attribute[col].name == column[i].name) break;
+			for (col = 0; col < tableinfor.attribute.size(); col++) {
+				if (tableinfor.attribute[col].name == column[i].name) break;
 			}
-			for(int j = 0; j < tableinfor.attribute[col].length + 1; j++){
+			for (int j = 0; j < tableinfor.attribute[col].length + 1; j++) {
 				cout << "-";
 			}
 			cout << "+";
 		}
 		cout << endl;
 	}
-	cout << data.rows.size() << " rows have been found."<< endl;
+	cout << data.rows.size() << " rows have been found." << endl;
 }

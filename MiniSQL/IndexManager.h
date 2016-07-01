@@ -16,6 +16,7 @@ typedef int POINTER;
 
 void dropIndex(Index& indexinfor);
 template <typename KeyType> KeyType getValue(int bufferNum, int position, int length);
+template <typename KeyType> KeyType getTableValue(int bufferNum, int position, int length);
 template <typename KeyType> void writeValue(int bufferNum, int position, int length, KeyType K);
 int getRecordNum(int bufferNum);
 class recordPosition
@@ -66,6 +67,8 @@ public:
 		for (int i = pos; i<pos + POINTERLENGTH; i++){
 			ptr = 10 * ptr + buf.bufferBlock[bufferNum].value[i] - '0';
 		}
+		if (ptr == -29)
+			ptr = -1;
 		return ptr;
 	}
 	void writePointer(int position, POINTER P)//一个pointer最大5位数,有5个字节存储,从位置11开始储存
@@ -75,7 +78,7 @@ public:
 		string str = tmpf;
 		while (str.length() < 5)
 			str = '0' + str;
-		strncpy(buf.bufferBlock[bufferNum].value + position, str.c_str(), 5);
+		memcpy(buf.bufferBlock[bufferNum].value + position, str.c_str(), 5);
 	}
 	int getRecordNum(){//这个block中的record的个数,最大4位数,由4个字节存储,为这个block的2~5位
 		int recordNum = 0;
@@ -249,9 +252,65 @@ KeyType getValue(int bufferNum, int position, int length)
 	string str = "";
 	if (typeid(KeyType) == typeid(int))
 	{
-		for (int i = position; i < position + length; i++)
+		char ch[4];
+		for (int i = position; i < position + 4; i++)
 		{			
-			str += buf.bufferBlock[bufferNum].value[i];			
+			ch[i-position]= buf.bufferBlock[bufferNum].value[i];			
+		}
+		int res=ch[0];
+		res = (res << 8) + ch[1];
+		res = (res << 8) + ch[2];
+		res = (res << 8) + ch[3];
+		K = res;
+	}
+	else if (typeid(KeyType) == typeid(string))
+	{
+		for (int i = position; i < position + length; i++)
+		{
+			K += buf.bufferBlock[bufferNum].value[i];
+		}		
+	}
+	else if (typeid(KeyType) == typeid(float))
+	{
+		char ch[4];
+		for (int i = position; i < position + 4; i++)
+		{
+			ch[i - position] = buf.bufferBlock[bufferNum].value[i];
+		}
+		int res = ch[0];
+		res = (res << 8) + ch[1];
+		res = (res << 8) + ch[2];
+		res = (res << 8) + ch[3];
+		int* resP = &res;
+		float* FLP=reinterpret_cast<float*>(resP);
+		K = *FLP;
+		/*unsigned int num=0;
+		for (int i = position; i < position + length; i++)
+		{
+			num += buf.bufferBlock[bufferNum].value[i];
+		}
+		unsigned int* Pnum = &num;
+		float* PF;
+		PF = reinterpret_cast<float*>(Pnum);
+		K = *PF;*/
+	}
+	else
+	{
+		cout << "invaild type  impossible in get value!!!" << endl;
+		exit(1);
+	}
+	return K;
+}
+template <typename KeyType>
+KeyType getTableValue(int bufferNum, int position, int length)
+{
+	KeyType K = KeyType();
+	string str = "";
+	if (typeid(KeyType) == typeid(int))
+	{
+		for (int i = position; i < position + length; i++)
+		{
+			str += buf.bufferBlock[bufferNum].value[i];
 		}
 		while (str[0] == '0')
 			str.erase(0, 1);
@@ -277,7 +336,7 @@ KeyType getValue(int bufferNum, int position, int length)
 		while (str[0] == '0')
 			str.erase(0, 1);
 		if (str[0] == '.')
-			str.insert(str.begin(),'0');
+			str.insert(str.begin(), '0');
 		stringstream ss;
 		ss << str;
 		float res;
@@ -286,7 +345,7 @@ KeyType getValue(int bufferNum, int position, int length)
 		/*unsigned int num=0;
 		for (int i = position; i < position + length; i++)
 		{
-			num += buf.bufferBlock[bufferNum].value[i];
+		num += buf.bufferBlock[bufferNum].value[i];
 		}
 		unsigned int* Pnum = &num;
 		float* PF;
@@ -300,34 +359,32 @@ KeyType getValue(int bufferNum, int position, int length)
 	}
 	return K;
 }
-
 template <typename KeyType>
 void writeValue(int bufferNum, int position, int length, KeyType K)
 {
-	if (typeid(KeyType).name()=="int")
+	if (typeid(KeyType) == typeid(int))
 	{
 		char ch[4];
 		KeyType* KP = &K;
 		int *resP = reinterpret_cast<int*>(KP);
 		int res = *resP;
-
 		ch[3] = res;
 		ch[2] = res >> 8;
 		ch[1] = res >> 16;
 		ch[0] = res >> 24;
-		strncpy(buf.bufferBlock[bufferNum].value + position, ch, 4);
+		memcpy(buf.bufferBlock[bufferNum].value + position, ch, 4);
 	}
-	else if (typeid(KeyType).name() == "string")
+	else if (typeid(KeyType) == typeid(string))
 	{
 		KeyType* KP = &K;
 		string *resP = reinterpret_cast<string*>(KP);
 		for (int i = position; i < position + length; i++)
 		{
 			char ch = (*resP)[i - position];
-			strncpy(buf.bufferBlock[bufferNum].value + i, &ch, 1);
+			memcpy(buf.bufferBlock[bufferNum].value + i, &ch, 1);
 		}
 	}
-	else if (typeid(KeyType).name() == "float")
+	else if (typeid(KeyType) == typeid(float))
 	{
 		char ch[4];
 		KeyType* KP = &K;
@@ -337,7 +394,7 @@ void writeValue(int bufferNum, int position, int length, KeyType K)
 		ch[2] = res >> 8;
 		ch[1] = res >> 16;
 		ch[0] = res >> 24;
-		strncpy(buf.bufferBlock[bufferNum].value + position, ch, 4);
+		memcpy(buf.bufferBlock[bufferNum].value + position, ch, 4);
 	}
 	else
 	{
@@ -363,7 +420,7 @@ void Branch<KeyType>::writeBack()//将这个节点的数据存入内存buffer中的一个block
 	string strRecordNum = tmpt;
 	while (strRecordNum.length() < 4)
 		strRecordNum = '0' + strRecordNum;
-	strncpy(buf.bufferBlock[bufferNum].value + 2, strRecordNum.c_str(), 4);
+	memcpy(buf.bufferBlock[bufferNum].value + 2, strRecordNum.c_str(), 4);
 	//father
 	int position = 6;
 	writePointer(position, this->father);
@@ -444,6 +501,7 @@ Leaf<KeyType>::Leaf(int _bufferNum, const Index& indexinfor) :fatherNode<KeyType
 		KeyType K;
 		K = getValue<KeyType>(this->bufferNum, position, this->columnLength);
 		this->key.push_back(K);
+		this->columnLength = 4;
 		position += this->columnLength;
 
 		recordPosition R;
@@ -475,7 +533,7 @@ void Leaf<KeyType>::writeBack()//将这个节点的数据存入内存buffer中的一个block
 	while (str.length() < 4)
 		str = '0' + str;
 	int position = 2;
-	strncpy(buf.bufferBlock[bufferNum].value + position, str.c_str(), 4);
+	memcpy(buf.bufferBlock[bufferNum].value + position, str.c_str(), 4);
 	position += 4;
 
 	writePointer(position, this->father);
@@ -488,6 +546,7 @@ void Leaf<KeyType>::writeBack()//将这个节点的数据存入内存buffer中的一个block
 
 	for (int cou = 0; cou < this->recordNum; cou++)
 	{
+		this->columnLength = 4;
 		writeValue<KeyType>(this->bufferNum, position, this->columnLength, this->key[cou]);
 		position += columnLength;
 		writePointer(position, this->POS[cou].blockNum);
@@ -496,7 +555,8 @@ void Leaf<KeyType>::writeBack()//将这个节点的数据存入内存buffer中的一个block
 		position += POINTERLENGTH;
 	}
 	buf.bufferBlock[this->bufferNum].Lock = 0;
-	buf.flashBack(this->bufferNum);
+	buf.writeBlock(this->bufferNum);
+	buf.flashBack_no_initial(this->bufferNum);
 }
 
 template <typename KeyType>
@@ -598,6 +658,7 @@ public:
 	bool isLeaf;
 public:
 	IndexManager(const Index& _treeIndex, const Table& _treeTable);
+	IndexManager(){}
 	void creatIndex();
 	void InitializeRoot();
 	int getKeyPosition();

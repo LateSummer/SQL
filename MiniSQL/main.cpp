@@ -31,55 +31,55 @@ int main()
 	char input[1024], cmd[1024];
 	//freopen("input.txt", "r", stdin);
 	cout << "Welcome to our miniSQL!" << endl;
-		while (!isQuit)
-		{
-			if (!fp) {
-				cout << "miniSQL>>";
-				isCmdEnd = 0;
-				cmd[0] = 0;
-				tot_len = 0;
-				while (!isCmdEnd) {
-					cin.getline(input, 1023, '\n');
-					tot_len += strlen(input);
-					if (tot_len >= 1024) {
-						cout << "ERROR! The max input length is 1023!" << endl;
-						continue;
-					}
-					if (cmdEnd(input)) isCmdEnd = 1;
-					if (same(input, "quit")) isCmdEnd = 1, isQuit = 1;
-					strcat(cmd, input);
-				}
-				ParseTree.Parse(cmd);
-				Execute();
-				ParseTree.makeInitilate();
-			}
-			else {
-				isCmdEnd = 0;
-				cmd[0] = 0;
-				tot_len = 0;
-				if (fin.eof()) {
-					fp = 0;
+	while (!isQuit)
+	{
+		if (!fp) {
+			cout << "miniSQL>>";
+			isCmdEnd = 0;
+			cmd[0] = 0;
+			tot_len = 0;
+			while (!isCmdEnd) {
+				cin.getline(input, 1023, '\n');
+				tot_len += strlen(input);
+				if (tot_len >= 1024) {
+					cout << "ERROR! The max input length is 1023!" << endl;
 					continue;
 				}
-				while (!isCmdEnd) {
-					if (fin.eof()) {
-						fp = 0;
-						break;
-					}
-					fin.getline(input, 1023, '\n');
-					tot_len += strlen(input);
-					if (tot_len >= 1024) {
-						cout << "ERROR! The max input length is 1023!" << endl;
-						continue;
-					}
-					if (cmdEnd(input)) isCmdEnd = 1;
-					if (same(input, "quit")) isCmdEnd = 1, isQuit = 1;
-					strcat(cmd, input);
-				}
-				ParseTree.Parse(cmd);
-				Execute();
-				ParseTree.makeInitilate();
+				if (cmdEnd(input)) isCmdEnd = 1;
+				if (same(input, "quit")) isCmdEnd = 1, isQuit = 1;
+				strcat(cmd, input);
 			}
+			ParseTree.Parse(cmd);
+			Execute();
+			ParseTree.makeInitilate();
 		}
+		else {
+			isCmdEnd = 0;
+			cmd[0] = 0;
+			tot_len = 0;
+			if (fin.eof()) {
+				fp = 0;
+				continue;
+			}
+			while (!isCmdEnd) {
+				if (fin.eof()) {
+					fp = 0;
+					break;
+				}
+				fin.getline(input, 1023, '\n');
+				tot_len += strlen(input);
+				if (tot_len >= 1024) {
+					cout << "ERROR! The max input length is 1023!" << endl;
+					continue;
+				}
+				if (cmdEnd(input)) isCmdEnd = 1;
+				if (same(input, "quit")) isCmdEnd = 1, isQuit = 1;
+				strcat(cmd, input);
+			}
+			ParseTree.Parse(cmd);
+			Execute();
+			ParseTree.makeInitilate();
+		}
+	}
 	return 0;
 }

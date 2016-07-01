@@ -24,7 +24,7 @@ bool isFloat(const char *input);
 
 class Interpret {
 public:
-							//解析树,所有的命令均可以反映到这样一棵树上
+	//解析树,所有的命令均可以反映到这样一棵树上
 	int m_operation;		//要执行的操作或错误代码,用宏表示
 	string m_tabname;		//要操作的表格名
 	string m_indname;		//要操作的索引名
@@ -50,8 +50,8 @@ public:
 		UniquePostion = -1;
 	}
 
-	~Interpret(){}
-	
+	~Interpret() {}
+
 	Condition getCon(string &cmd);
 	Attribute getCol(string &cmd);
 	string getRow(string &cmd);
@@ -60,19 +60,19 @@ public:
 	//This function is used to initiate the 'column' structure
 	void initCol()
 	{
-		if(column.size()>0){
+		if (column.size() > 0) {
 			column.clear();
 		}
 	}
-	
+
 	//This function is used to initiate the 'condition' structure
 	void initCond()
 	{
-		if(condition.size()>0){
+		if (condition.size() > 0) {
 			condition.clear();
 		}
 	}
-	
+
 	//This function is used to initiate the 'insertvalue' structure
 	void initValue()
 	{/*
@@ -80,21 +80,21 @@ public:
 			row.columns.clear();
 		}*/
 	}
-	
-	void initTable(){
+
+	void initTable() {
 		getTableInfo.tableName = "";
 		getTableInfo.attriNum = getTableInfo.blockNum = getTableInfo.totalLength = 0;
 		getTableInfo.attribute.clear();
 	}
-	
-	void initIndex(){
+
+	void initIndex() {
 		getIndexInfo.blockNum = getIndexInfo.column = -1;
 		getIndexInfo.indexName = "";
 		getIndexInfo.tableName = "";
 	}
-	
-	void makeInitilate(){
-		m_operation =UNKNOW;
+
+	void makeInitilate() {
+		m_operation = UNKNOW;
 		m_tabname = "";
 		m_indname = "";
 		initCol();

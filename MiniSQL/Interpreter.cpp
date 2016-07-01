@@ -147,7 +147,7 @@ Attribute Interpret::getCol(string &cmd)
 		if (!getWord(cmd, word)) return tempcol;
 		if (!(word == "key")) return tempcol;
 		if (!getWord(cmd, word)) return tempcol;
-		if (strcmp(word.c_str(), "(") != 0) return tempcol;
+		if (word != "(") return tempcol;
 		if (!getWord(cmd, word)) return tempcol;
 		for (int i = 0; i < getTableInfo.attribute.size(); i++) {
 			if (getTableInfo.attribute[i].name == word) {
@@ -169,7 +169,7 @@ Attribute Interpret::getCol(string &cmd)
 	if (word == "unique")
 	{
 		if (!getWord(cmd, word)) return tempcol;
-		if (word == "(") return tempcol;
+		if (word != "(") return tempcol;
 		if (!getWord(cmd, word)) return tempcol;
 		for (int i = 0; i < getTableInfo.attribute.size(); i++) {
 			if (getTableInfo.attribute[i].name == word) {

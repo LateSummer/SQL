@@ -508,7 +508,6 @@ Leaf<KeyType>::Leaf(int _bufferNum, const Index& indexinfor) :fatherNode<KeyType
 		KeyType K;
 		K = getValue<KeyType>(this->bufferNum, position, this->columnLength);
 		this->key.push_back(K);
-		this->columnLength = 4;
 		position += this->columnLength;
 
 		recordPosition R;
@@ -553,7 +552,6 @@ void Leaf<KeyType>::writeBack()//½«Õâ¸ö½ÚµãµÄÊı¾İ´æÈëÄÚ´æbufferÖĞµÄÒ»¸öblock
 
 	for (int cou = 0; cou < this->recordNum; cou++)
 	{
-		this->columnLength = 4;
 		writeValue<KeyType>(this->bufferNum, position, this->columnLength, this->key[cou]);
 		position += columnLength;
 		writePointer(position, this->POS[cou].blockNum);
@@ -928,7 +926,7 @@ bool IndexManager<KeyType>::insertLeaf(KeyType mykey, int blockNum, int blockOff
 	}
 	else
 	{
-		this->insertLeaf<KeyType>(mykey, blockNum, blockOffset, bufferNum, offset);
+		this->insertLeaf(mykey, blockNum, blockOffset, bufferNum, offset);
 	}
 	return 1;
 }
@@ -1265,7 +1263,7 @@ bool IndexManager<KeyType>::deleteBranch(KeyType mykey, int branchBlock)
 	}
 	else
 	{
-		this->deleteBranch<KeyType>(mykey, bufferNum, offset);
+		this->deleteBranch(mykey, bufferNum, offset);
 	}
 	return 1;
 }
@@ -1311,7 +1309,7 @@ bool IndexManager<KeyType>::deleteLeaf(KeyType mykey, int leafBlock)
 	}
 	else
 	{
-		this->deleteLeaf<KeyType>(mykey, bufferNum, offset);
+		this->deleteLeaf(mykey, bufferNum, offset);
 	}
 	return 1;
 }
@@ -1804,7 +1802,7 @@ void IndexManager<KeyType>::adjustafterdelete(int bufferNum)//ĞèÒªÎ¬»¤£ºblockNum
 
 }
 
-
+//4
 template <class KeyType>
 Data IndexManager<KeyType>::selectEqual(KeyType mykey)
 {
@@ -1831,7 +1829,7 @@ Data IndexManager<KeyType>::selectBetween(KeyType mykey1, KeyType mykey2)//´óÓÚµ
 	int bufferNum = 0;
 	vector<recordPosition> RESULT;
 
-	this->findToLeaf<KeyType>(mykey1, offset, bufferNum);
+	this->findToLeaf(mykey1, offset, bufferNum);
 	Leaf<KeyType> myleaf(bufferNum, this->treeIndex);
 	while ((offset + 1) <= myleaf.recordNum && myleaf.key[offset]<mykey2)
 	{

@@ -30,6 +30,7 @@ void Execute()
 				indexinfor.keytype = ParseTree.getTableInfo.attribute[i].type;
 				indexinfor.blockNum = 0;
 				indexinfor.columnLength = ParseTree.getTableInfo.attribute[i].length;
+				Catalog.createIndex(indexinfor);
 				if (type == INT) {
 					IndexManager<int> indexint(indexinfor, tableinfor);
 				}
@@ -39,6 +40,7 @@ void Execute()
 				else {
 					IndexManager<string> indexstring(indexinfor, tableinfor);
 				}
+				Catalog.update(indexinfor);
 				break;
 			}
 		cout << "Table " << ParseTree.getTableInfo.tableName << " has been created successfully" << endl;

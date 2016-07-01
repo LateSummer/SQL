@@ -12,6 +12,7 @@ void Execute()
 	Table tableinfor;
 	Index indexinfor;
 	string tempKeyValue;
+	insertPos pos;
 	int tempPrimaryPosition = -1;
 	int rowCount = 0;
 	Data data;
@@ -81,7 +82,28 @@ void Execute()
 				break;
 			}
 		}
-		record.insertValue(tableinfor, ParseTree.row);
+		if (ParseTree.UniquePostion != -1) {
+			indexinfor = Catalog.getIndexInformation(tableinfor.tableName, ParseTree.UniquePostion);
+			tempKeyValue = ParseTree.row.columns[ParseTree.UniquePostion];
+		}
+		if (ParseTree.PrimaryKeyPosition != -1) {
+			indexinfor = Catalog.getIndexInformation(tableinfor.tableName, ParseTree.PrimaryKeyPosition);
+			tempKeyValue = ParseTree.row.columns[ParseTree.PrimaryKeyPosition];
+		}
+		pos = record.insertValue(tableinfor, ParseTree.row);
+		indexinfor.keytype = tableinfor.attribute[indexinfor.column].type;
+		if (indexinfor.keytype == INT) {
+			IndexManager<int> indexint(indexinfor, tableinfor);
+			indexint.insertIndex(atoi(tempKeyValue.c_str()), pos.BLOCKNUM, pos.position);
+		}
+		else if (indexinfor.keytype == FLOAT) {
+			IndexManager<float> indexfloat(indexinfor, tableinfor);
+			indexfloat.insertIndex(atof(tempKeyValue.c_str()), pos.BLOCKNUM, pos.position);
+		}
+		else if (indexinfor.keytype == STRING){
+			IndexManager<string> indexstring(indexinfor, tableinfor);
+			indexstring.insertIndex(tempKeyValue, pos.BLOCKNUM, pos.position);
+		}
 		Catalog.update(tableinfor);
 		cout << "One record has been inserted successfully" << endl;
 		break;

@@ -20,7 +20,7 @@ private:
 	vector<Index> indexes;                	//索引列表
 	int indexNum;                   	//索引数目
 private:
-	void InitialTalbeCatalog(){ //打错字？
+	void InitialTalbeCatalog(){
 		const string filename = "table.catlog";
 		fstream fin(filename.c_str(), ios::in);
 		fin >> tableNum;

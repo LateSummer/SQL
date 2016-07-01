@@ -174,7 +174,8 @@ public:
 		return datas;
 	}
 
-	void insertValue(Table& tableinfor, Row& splitedRow) {
+	insertPos insertValue(Table& tableinfor, Row& splitedRow) {
+		//TYPE type = tableinfor.attribute[]
 		string stringrow = connectRow(tableinfor, splitedRow);
 		insertPos iPos = buf.getInsertPosition(tableinfor);
 		buf.bufferBlock[iPos.BLOCKNUM].value[iPos.position] = NOTEMPTY;
@@ -182,6 +183,7 @@ public:
 			buf.bufferBlock[iPos.BLOCKNUM].value[iPos.position + i + 1] = stringrow.c_str()[i];
 		}
 		buf.bufferBlock[iPos.BLOCKNUM].Written = 1;
+		return iPos;
 	}
 
 	int deleteValue(Table tableinfor) {

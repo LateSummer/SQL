@@ -24,6 +24,12 @@ void Execute()
 		for (int i = 0; i < ParseTree.getTableInfo.attriNum; i++)
 			if (ParseTree.getTableInfo.attribute[i].isPrimeryKey) {
 				TYPE type = ParseTree.getTableInfo.attribute[i].type;
+				indexinfor.indexName = ParseTree.getTableInfo.tableName + "_" + ParseTree.getTableInfo.attribute[i].name;
+				indexinfor.tableName = ParseTree.getTableInfo.tableName;
+				indexinfor.column = i;
+				indexinfor.keytype = ParseTree.getTableInfo.attribute[i].type;
+				indexinfor.blockNum = 0;
+				indexinfor.columnLength = ParseTree.getTableInfo.attribute[i].length;
 				if (type == INT) {
 					IndexManager<int> indexint(indexinfor, tableinfor);
 				}
@@ -33,6 +39,7 @@ void Execute()
 				else {
 					IndexManager<string> indexstring(indexinfor, tableinfor);
 				}
+				break;
 			}
 		cout << "Table " << ParseTree.getTableInfo.tableName << " has been created successfully" << endl;
 		break;

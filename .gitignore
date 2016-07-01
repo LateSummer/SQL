@@ -9,6 +9,7 @@
 *.catlog
 *.table
 *.txt
+*index
 
 # User-specific files
 *.suo

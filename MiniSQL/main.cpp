@@ -64,6 +64,8 @@ int main()
 			while (!isCmdEnd) {
 				if (fin.eof()) {
 					fp = 0;
+					cout << "OK!" << endl;
+					fclose(stdout);
 					break;
 				}
 				fin.getline(input, 1023, '\n');

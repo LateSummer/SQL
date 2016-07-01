@@ -195,9 +195,12 @@ void Execute()
 		exit(0);
 		break;
 	case EXEFILE:
-		fp = 1;
 		fin.open(ParseTree.m_filename.c_str(), ios::in);
 		if (fin.fail()) cout << "Open file fail!" << endl;
+		else {
+			fp = 1;
+			freopen("out.txt", "w", stdout);
+		}
 		break;
 	case EXEFILERR:
 		cout << "Incorrect usage of \"execfile\" query! Please check your input!" << endl;

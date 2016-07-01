@@ -1,5 +1,5 @@
 #pragma once
-#ifndef _BUHHER_H
+#ifndef _BUFFER_H
 #define _BUFFER_H
 #include "SQL.h"
 #include "Macro.h"
@@ -57,6 +57,8 @@ public:
 	void scanIn(Table tableinfo);//this is dangerous because
 
 	void setInvalid(string filename);//when a file is deleted, a table or an index, all the value in buffer should be set invalid
+
+	void flashBack_no_initial(int bufferNum);
 
 public:
 	/*This function can show the values in the buffer, which is for debug only

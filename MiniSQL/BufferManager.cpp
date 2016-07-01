@@ -15,6 +15,20 @@ void BufferManager::flashBack(int bufferNum)//把这个block更新到文件中
 
 }
 
+void BufferManager::flashBack_no_initial(int bufferNum)//把这个block更新到文件中
+{
+
+	if (!bufferBlock[bufferNum].Written)
+		return;
+
+	string filename = bufferBlock[bufferNum].filename;
+	fstream fout(filename.c_str(), ios::in | ios::out);
+	fout.seekp(BLOCKSIZE*bufferBlock[bufferNum].blockOffset, ios::beg);
+	fout.write(bufferBlock[bufferNum].value, BLOCKSIZE);
+	fout.close();
+
+}
+
 int BufferManager::getIfIsInBuffer(string filename, int blockOffset)//在BM中寻找在文件filename中第blockOffset个block若找到则返回内存中的第几块，若找不到则返回-1
 {
 	int cou;
@@ -244,6 +258,4 @@ void BufferManager::ShowBuffer(int bufferNum)
 	cout << "blockOffset: " << bufferBlock[bufferNum].blockOffset << endl;
 	cout <<"content: "<<endl<< bufferBlock[bufferNum].value << endl;
 }
-
-
 

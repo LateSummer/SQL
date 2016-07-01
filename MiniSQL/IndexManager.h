@@ -301,6 +301,7 @@ KeyType getValue(int bufferNum, int position, int length)
 	}
 	return K;
 }
+
 template <typename KeyType>
 KeyType getTableValue(int bufferNum, int position, int length)
 {

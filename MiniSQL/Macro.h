@@ -1,11 +1,12 @@
+#pragma once
 #ifndef _MACRO_H
 #define _MACRO_H
 
 
-#define INTLENGTH 11
-#define FLOATLENGTH 10
-#define INTLEN		11
-#define FLOATLEN	10
+#define INTLENGTH	4
+#define FLOATLENGTH 4
+#define INTLEN		4
+#define FLOATLEN	4
 
 #define ISPRIMARYKEY 1
 #define NOTPRIMARYKEY 0

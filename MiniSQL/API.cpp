@@ -21,6 +21,19 @@ void Execute()
 		ParseTree.getTableInfo.attriNum = ParseTree.getTableInfo.attribute.size();
 		Catalog.createTable(ParseTree.getTableInfo);
 		record.createTable(ParseTree.getTableInfo);
+		for (int i = 0; i < ParseTree.getTableInfo.attriNum; i++)
+			if (ParseTree.getTableInfo.attribute[i].isPrimeryKey) {
+				TYPE type = ParseTree.getTableInfo.attribute[i].type;
+				if (type == INT) {
+					IndexManager<int> indexint(indexinfor, tableinfor);
+				}
+				else if (type == FLOAT) {
+					IndexManager<float> indexfloat(indexinfor, tableinfor);
+				}
+				else {
+					IndexManager<string> indexstring(indexinfor, tableinfor);
+				}
+			}
 		cout << "Table " << ParseTree.getTableInfo.tableName << " has been created successfully" << endl;
 		break;
 	case TABLEEXISTED:
@@ -93,17 +106,17 @@ void Execute()
 					IndexManager<int> indexint;
 					int KeyValue;
 					ss >> KeyValue;
-					indexint.selectEqual(KeyValue);
+					//indexint.selectEqual(KeyValue);
 				}
 				else if (indexinfor.keytype == FLOAT) {
 					IndexManager<float> indexfloat;
 					float KeyValue;
 					ss >> KeyValue;
-					indexfloat.selectEqual(KeyValue);
+					//indexfloat.selectEqual(KeyValue);
 				}
 				else {
 					IndexManager<string> indexstring;
-					indexstring.selectEqual(tempKeyValue);
+					//indexstring.selectEqual(tempKeyValue);
 				}
 			}
 			else {

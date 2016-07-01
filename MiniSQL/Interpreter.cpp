@@ -363,62 +363,64 @@ void Interpret::Parse(char* command)
 			m_operation = CRETABERR;
 			if (!getWord(temp, word)) return;
 			m_tabname = word;
-			if (Catalog.ExistTable(m_tabname)){
-				m_operation=TABLEEXISTED;
+			if (Catalog.ExistTable(m_tabname)) {
+				m_operation = TABLEEXISTED;
 				return;
 			}
 			getTableInfo.tableName = word;
 			if (!getWord(temp, word)) return;
 			if (!(word == "("))	return;
 			tempcol = getCol(temp);
-			if (tempcol.type == -1) return;
-			getTableInfo.attribute.push_back(tempcol);//开始加入信息表中
+			if (tempcol.type != FALSE) {
+				getTableInfo.attribute.push_back(tempcol);//开始加入信息表中
+			}
 			if (!getWord(temp, word)) return;
-			while(word == ",")
+			while (word == ",")
 			{
 				tempcol = getCol(temp);
-				if (tempcol.type == -1) return;
-				getTableInfo.attribute.push_back(tempcol);
+				if (tempcol.type != FALSE) {
+					getTableInfo.attribute.push_back(tempcol);
+				}
 				if (!getWord(temp, word)) return;
 			};
 			if (!(word == ")"))	return;
-			if (!getWord(temp, word)){
+			if (!getWord(temp, word)) {
 				m_operation = CRETAB;
 			}
 			return;
 		}
-		
+
 		//解析create index命令
 		if (word == "index")
 		{
 			m_operation = CREINDERR;
 			if (!getWord(temp, word)) return;
 			m_indname = word;
-			getIndexInfo.indexName=word;
-			if (Catalog.ExistIndex(m_indname)){
-				m_operation=INDEXERROR;
+			getIndexInfo.indexName = word;
+			if (Catalog.ExistIndex(m_indname)) {
+				m_operation = INDEXERROR;
 				return;
 			}
 			if (!getWord(temp, word)) return;
 			if (!(word == "on")) return;
 			if (!getWord(temp, word)) return;
 			m_tabname = word;
-			if (!Catalog.ExistTable(word)){
-				m_operation=TABLEERROR;
+			if (!Catalog.ExistTable(word)) {
+				m_operation = TABLEERROR;
 				return;
 			}
-			getTableInfo=Catalog.getTableInformation(m_tabname);
+			getTableInfo = Catalog.getTableInformation(m_tabname);
 			getIndexInfo.tableName = word;
 			if (!getWord(temp, word)) return;
 			if (!(word == "(")) return;
 			if (!getWord(temp, word)) return;
 			int tempint;
-			tempint = Catalog.GetColumnNumber(getTableInfo,word);
-			if (tempint == -1){
+			tempint = Catalog.GetColumnNumber(getTableInfo, word);
+			if (tempint == -1) {
 				m_operation = COLUMNERROR;
 				return;
 			}
-			if (Catalog.ExistIndex(m_tabname,tempint)){
+			if (Catalog.ExistIndex(m_tabname, tempint)) {
 				m_operation = INDEXERROR;
 				return;
 			}

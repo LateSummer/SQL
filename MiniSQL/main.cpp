@@ -59,13 +59,15 @@ int main()
 			tot_len = 0;
 			if (fin.eof()) {
 				fp = 0;
+				freopen("CON", "w", stdout);
+				cout << "OK!" << endl;
 				continue;
 			}
 			while (!isCmdEnd) {
 				if (fin.eof()) {
+					freopen("CON", "w", stdout);
 					fp = 0;
 					cout << "OK!" << endl;
-					fclose(stdout);
 					break;
 				}
 				fin.getline(input, 1023, '\n');
@@ -78,6 +80,7 @@ int main()
 				if (same(input, "quit")) isCmdEnd = 1, isQuit = 1;
 				strcat(cmd, input);
 			}
+			if (!fp) continue;
 			ParseTree.Parse(cmd);
 			Execute();
 			ParseTree.makeInitilate();
